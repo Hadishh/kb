@@ -26,30 +26,34 @@ class WicDatasetReader(DatasetReader):
         with open(cached_path(file_path + '.gold.txt'), 'r') as f:
             labels = f.read().split()
 
-        with open(cached_path(file_path + '.data.txt'), 'r') as f:
+        with open(cached_path(file_path + '.data.extra.txt'), 'r') as f:
             sentences = f.read().splitlines()
             assert len(labels) == len(sentences), f'The length of the labels and sentences must match. ' \
                 f'Got {len(labels)} and {len(sentences)}.'
 
             for line, label in zip(sentences, labels):
                 tokens = line.split('\t')
-                assert len(tokens) == 5, tokens
+                assert len(tokens) == 8, tokens
 
                 text_a = tokens[3]
                 text_b = tokens[4]
+                def_a = tokens[5]
+                def_b = tokens[6]
                 if self.entity_markers:
                     # insert entity markers
                     idx1, idx2 = [int(ind) for ind in tokens[2].split('-')]
                     tokens_a = text_a.strip().split()
                     tokens_b = text_b.strip().split()
+                    def_a = f"in that sentence, {tokens_a[idx1]} is defined as {def_a}"
+                    def_b = f"in that sentence, {tokens_b[idx2]} is defined as {def_b}"
                     tokens_a.insert(idx1, '[e1start]')
                     tokens_a.insert(idx1 + 2, '[e1end]')
                     tokens_b.insert(idx2, '[e2start]')
                     tokens_b.insert(idx2 + 2, '[e2end]')
                     text_a = ' '.join(tokens_a)
                     text_b = ' '.join(tokens_b)
-
-                token_candidates = self.tokenizer.tokenize_and_generate_candidates(text_a, text_b)
+                # print(text_a, def_a, text_b, def_b)
+                token_candidates = self.tokenizer.tokenize_and_generate_candidates(text_a, def_a, text_b, def_b)
                 fields = self.tokenizer.convert_tokens_candidates_to_fields(token_candidates)
                 fields['label_ids'] = LabelField(self.label_to_index[label], skip_indexing=True)
 

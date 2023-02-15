@@ -154,7 +154,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         #if we got 4 sentences
         if def_a is not None and def_b is not None and text_b is not None :
             tokens = [start_token] + word_piece_tokens_a + [sep_token] + word_piece_tokens_defa + \
-                [sep_token] + word_piece_tokens_b + [sep_token] + word_piece_tokens_a + [sep_token]
+                [sep_token] + word_piece_tokens_b + [sep_token] + word_piece_tokens_defb + [sep_token]
             segment_ids = (len(word_piece_tokens_a) + 2) * [0] + \
                     (len(word_piece_tokens_defa) + 1) * [1] + (len(word_piece_tokens_b) + 1) * [2] + (len(word_piece_tokens_defb) + 1) * [3]
             offsets_a = [x + 1 for x in offsets_a]

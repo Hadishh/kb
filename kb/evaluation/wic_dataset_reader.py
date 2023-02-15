@@ -53,7 +53,7 @@ class WicDatasetReader(DatasetReader):
                     text_a = ' '.join(tokens_a)
                     text_b = ' '.join(tokens_b)
                 # print(text_a, def_a, text_b, def_b)
-                token_candidates = self.tokenizer.tokenize_and_generate_candidates(text_a, def_a, text_b, def_b)
+                token_candidates = self.tokenizer.tokenize_and_generate_candidates(text_a, text_b, def_a, def_b)
                 fields = self.tokenizer.convert_tokens_candidates_to_fields(token_candidates)
                 fields['label_ids'] = LabelField(self.label_to_index[label], skip_indexing=True)
 
@@ -62,7 +62,7 @@ class WicDatasetReader(DatasetReader):
                 idx1, idx2 = [int(ind) for ind in tokens[2].split('-')]
                 offsets_a = [1] + token_candidates['offsets_a'][:-1]
                 idx1_offset = offsets_a[idx1]
-                offsets_b = [token_candidates['offset_defa'][-1] + 1] + token_candidates['offsets_b'][:-1]
+                offsets_b = [token_candidates['offsets_defa'][-1] + 1] + token_candidates['offsets_b'][:-1]
                 idx2_offset = offsets_b[idx2]
 
                 fields['index_a'] = LabelField(idx1_offset, skip_indexing=True)

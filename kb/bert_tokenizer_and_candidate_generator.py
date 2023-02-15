@@ -289,7 +289,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         assert len(tokens) == len(offsets), f'Length of tokens {len(tokens)} must equal that of offsets {len(offsets)}.'
         entity_instances = {}
         for name, mention_generator in self.candidate_generators.items():
-            entity_instances[name] = mention_generator.get_mentions_raw_text(' '.join(tokens), whitespace_tokenize=True)
+            entity_instances[name] = mention_generator.get_mentions_raw_text(' '.join(tokens), whitespace_tokenize=False)
 
         for name, entities in entity_instances.items():
             candidate_spans = entities["candidate_spans"]

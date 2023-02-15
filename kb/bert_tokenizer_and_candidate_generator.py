@@ -17,16 +17,30 @@ start_token = "[CLS]"
 sep_token = "[SEP]"
 
 
-def truncate_sequence_pair(word_piece_tokens_a, word_piece_tokens_b, max_word_piece_sequence_length):
+def truncate_sequence_pair(word_piece_tokens_a, 
+                           word_piece_tokens_b,  
+                           max_word_piece_sequence_length, 
+                           word_piece_tokens_defa = None,
+                           word_piece_tokens_defb = None):
+
     length_a = sum([len(x) for x in word_piece_tokens_a])
     length_b = sum([len(x) for x in word_piece_tokens_b])
-    while max_word_piece_sequence_length < length_a + length_b:
-        if length_a < length_b:
+    length_def_a = sum([len(x) for x in word_piece_tokens_defa]) if word_piece_tokens_defa is not None else 0
+    length_def_b = sum([len(x) for x in word_piece_tokens_defb]) if word_piece_tokens_defb is not None else 0
+    while max_word_piece_sequence_length < length_a + length_b + length_def_a + length_def_b:
+        max_ = max(length_a, length_b, length_def_a, length_def_b)
+        if max_ == length_b:
             discarded = word_piece_tokens_b.pop()
             length_b -= len(discarded)
-        else:
+        elif max_ == length_a:
             discarded = word_piece_tokens_a.pop()
             length_a -= len(discarded)
+        elif max_ == length_def_a:
+            discarded = word_piece_tokens_defa.pop()
+            length_def_a -= len(discarded)
+        else:
+            discarded = word_piece_tokens_defb.pop()
+            length_def_b -= len(discarded)
 
 
 class TokenizerAndCandidateGenerator(Registrable):
@@ -71,7 +85,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
             word = word.lower()
         return self.bert_tokenizer.wordpiece_tokenizer.tokenize(word)
 
-    def tokenize_and_generate_candidates(self, text_a: str, text_b: str = None):
+    def tokenize_and_generate_candidates(self, text_a: str, text_b: str = None, def_a: str = None, def_b: str = None):
         """
         # run BertTokenizer.basic_tokenizer.tokenize on sentence1 and sentence2 to word tokenization
         # generate candidate mentions for each of the generators and for each of sentence1 and 2 from word tokenized text
@@ -94,7 +108,32 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         """
         offsets_a, grouped_wp_a, tokens_a = self._tokenize_text(text_a)
 
-        if text_b is not None:
+        if def_a is not None and def_b is not None and text_b is not None :
+            offsets_defa, grouped_wp_defa, tokens_defa = self._tokenize_text(def_a)
+            offsets_defb, grouped_wp_defb, tokens_defb = self._tokenize_text(def_b)
+            offsets_b, grouped_wp_b, tokens_b = self._tokenize_text(text_b)
+            truncate_sequence_pair(grouped_wp_a, 
+                                   grouped_wp_b, 
+                                   self.max_word_piece_sequence_length - 5, 
+                                   word_piece_tokens_defa=grouped_wp_defa, 
+                                   word_piece_tokens_defb=grouped_wp_defb)
+            offsets_b = offsets_b[:len(grouped_wp_b)]
+            tokens_b = tokens_b[:len(grouped_wp_b)]
+            instance_b = self._generate_sentence_entity_candidates(tokens_b, offsets_b)
+            word_piece_tokens_b = [word_piece for word in grouped_wp_b for word_piece in word]
+
+            offsets_defa = offsets_defa[:len(grouped_wp_defa)]
+            tokens_defa = tokens_defa[:len(grouped_wp_defa)]
+            instance_defa = self._generate_sentence_entity_candidates(tokens_defa, offsets_defa)
+            word_piece_tokens_defa = [word_piece for word in grouped_wp_defa for word_piece in word]
+
+            offsets_defb = offsets_defb[:len(grouped_wp_defb)]
+            tokens_defb = tokens_defb[:len(grouped_wp_defb)]
+            instance_defb = self._generate_sentence_entity_candidates(tokens_defb, offsets_defb)
+            word_piece_tokens_defb = [word_piece for word in grouped_wp_defb for word_piece in word]
+
+
+        elif text_b is not None:
             offsets_b, grouped_wp_b, tokens_b = self._tokenize_text(text_b)
             truncate_sequence_pair(grouped_wp_a, grouped_wp_b, self.max_word_piece_sequence_length - 3)
             offsets_b = offsets_b[:len(grouped_wp_b)]
@@ -112,8 +151,19 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         tokens_a = tokens_a[:len(grouped_wp_a)]
         instance_a = self._generate_sentence_entity_candidates(tokens_a, offsets_a)
 
+        #if we got 4 sentences
+        if def_a is not None and def_b is not None and text_b is not None :
+            tokens = [start_token] + word_piece_tokens_a + [sep_token] + word_piece_tokens_defa + \
+                [sep_token] + word_piece_tokens_b + [sep_token] + word_piece_tokens_a + [sep_token]
+            segment_ids = (len(word_piece_tokens_a) + 2) * [0] + \
+                    (len(word_piece_tokens_defa) + 1) * [1] + (len(word_piece_tokens_b) + 1) * [2] + (len(word_piece_tokens_defb) + 1) * [3]
+            offsets_a = [x + 1 for x in offsets_a]
+            offsets_defa = [x + 2 + len(word_piece_tokens_a) for x in offsets_defa]
+            offsets_b = [x + 3 + len(word_piece_tokens_a) + len(word_piece_tokens_defa) for x in offsets_b]
+            offsets_defb = [x + 4 + len(word_piece_tokens_a) + len(word_piece_tokens_defa) + len(word_piece_tokens_b) for x in offsets_defb]
+        
         # If we got 2 sentences.
-        if text_b is not None:
+        elif text_b is not None:
             # Target length should include start and two end tokens, and then be divided equally between both sentences
             # Note that this will result in potentially shorter documents than original target length,
             # if one (or both) of the sentences are shorter than half the target length.
@@ -145,16 +195,27 @@ class BertTokenizerAndCandidateGenerator(Registrable):
             for entity_type in instance_b:
                 candidate_instance_a = instance_a[entity_type]
                 candidate_instance_b = instance_b[entity_type]
+                
+                candidate_instance_defa = instance_defa
+                candidate_instance_defb = instance_defb
 
                 candidates[entity_type] = {}
 
                 for span in candidate_instance_b['candidate_spans']:
-                    span[0] += len(word_piece_tokens_a) + 2
-                    span[1] += len(word_piece_tokens_a) + 2
+                    span[0] += 3 + len(word_piece_tokens_a) + len(word_piece_tokens_defa)
+                    span[1] += 3 + len(word_piece_tokens_a) + len(word_piece_tokens_defa)
+                
+                for span in candidate_instance_defa['candidate_spans']:
+                    span[0] += 2 + len(word_piece_tokens_a)
+                    span[1] += 2 + len(word_piece_tokens_a)
+                
+                for span in candidate_instance_defb['candidate_spans']:
+                    span[0] += 4 + len(word_piece_tokens_a) + len(word_piece_tokens_defa) + len(word_piece_tokens_b)
+                    span[1] += 4 + len(word_piece_tokens_a) + len(word_piece_tokens_defa) + len(word_piece_tokens_b)
 
                 # Merging each of the fields.
                 for key in ['candidate_entities', 'candidate_spans', 'candidate_entity_priors']:
-                    candidates[entity_type][key] = candidate_instance_a[key] + candidate_instance_b[key]
+                    candidates[entity_type][key] = candidate_instance_a[key] + candidate_instance_defa[key] + candidate_instance_b[key] + candidate_instance_defb[key]
 
 
         for entity_type in candidates.keys():

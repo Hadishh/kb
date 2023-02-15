@@ -62,7 +62,7 @@ class WicDatasetReader(DatasetReader):
                 idx1, idx2 = [int(ind) for ind in tokens[2].split('-')]
                 offsets_a = [1] + token_candidates['offsets_a'][:-1]
                 idx1_offset = offsets_a[idx1]
-                offsets_b = [token_candidates['offsets_a'][-1] + 1] + token_candidates['offsets_b'][:-1]
+                offsets_b = [token_candidates['offset_defa'][-1] + 1] + token_candidates['offsets_b'][:-1]
                 idx2_offset = offsets_b[idx2]
 
                 fields['index_a'] = LabelField(idx1_offset, skip_indexing=True)

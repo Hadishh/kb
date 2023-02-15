@@ -196,8 +196,8 @@ class BertTokenizerAndCandidateGenerator(Registrable):
                 candidate_instance_a = instance_a[entity_type]
                 candidate_instance_b = instance_b[entity_type]
                 
-                candidate_instance_defa = instance_defa
-                candidate_instance_defb = instance_defb
+                candidate_instance_defa = instance_defa[entity_type]
+                candidate_instance_defb = instance_defb[entity_type]
 
                 candidates[entity_type] = {}
 
@@ -254,7 +254,9 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         fields['segment_ids'] = segment_ids
         fields['candidates'] = candidates
         fields['offsets_a'] = offsets_a
+        fields['offsets_defa'] = offsets_defa
         fields['offsets_b'] = offsets_b
+        fields['offsets_defb'] = offsets_defb
         return fields
 
     def _tokenize_text(self, text):

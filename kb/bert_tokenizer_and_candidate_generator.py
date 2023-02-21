@@ -156,7 +156,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
             tokens = [start_token] + word_piece_tokens_a + [sep_token] + word_piece_tokens_defa + \
                 [sep_token] + word_piece_tokens_b + [sep_token] + word_piece_tokens_defb + [sep_token]
             segment_ids = (len(word_piece_tokens_a) + 2) * [0] + \
-                    (len(word_piece_tokens_defa) + 1) * [1] + (len(word_piece_tokens_b) + 1) * [2] + (len(word_piece_tokens_defb) + 1) * [3]
+                    (len(word_piece_tokens_defa) + 1) * [0] + (len(word_piece_tokens_b) + 1) * [1] + (len(word_piece_tokens_defb) + 1) * [1]
             offsets_a = [x + 1 for x in offsets_a]
             offsets_defa = [x + 2 + len(word_piece_tokens_a) for x in offsets_defa]
             offsets_b = [x + 3 + len(word_piece_tokens_a) + len(word_piece_tokens_defa) for x in offsets_b]
@@ -184,7 +184,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
                 span[1] += 1
 
         fields: Dict[str, Sequence] = {}
-
+        
         # concatanating both sentences (for both tokens and ids)
         if text_b is None:
             candidates = instance_a

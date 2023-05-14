@@ -26,7 +26,7 @@ class WicDatasetReader(DatasetReader):
         # with open(cached_path(file_path + '_labels.txt'), 'r') as f:
         #     labels = f.read().split()
 
-        with open(cached_path(file_path + '.data.extra.txt'), 'r') as f:
+        with open(cached_path(file_path + '.wictsv.extra.txt'), 'r') as f:
             sentences = f.read().splitlines()
             # assert len(labels) == len(sentences), f'The length of the labels and sentences must match. ' \
             #     f'Got {len(labels)} and {len(sentences)}.'

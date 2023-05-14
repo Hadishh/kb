@@ -119,7 +119,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
                                 word_piece_tokens_defa=None, 
                                 word_piece_tokens_defb=None)
             
-        offsets_def_gold = offsets_b[:len(grouped_wp_def_gold)]
+        offsets_def_gold = offsets_def_gold[:len(grouped_wp_def_gold)]
         tokens_def_gold = tokens_def_gold[:len(grouped_wp_def_gold)]
         instance_def_gold = self._generate_sentence_entity_candidates(tokens_def_gold, offsets_def_gold)
         word_piece_tokens_def_gold = [word_piece for word in grouped_wp_def_gold for word_piece in word]

@@ -33,7 +33,7 @@ class WicDatasetReader(DatasetReader):
 
             for line in sentences:
                 tokens = line.split('\t')
-                assert len(tokens) == 5, tokens
+                assert len(tokens) >= 5, tokens
 
                 context = tokens[0]
                 def_pred = tokens[1]

@@ -106,18 +106,18 @@ class BertTokenizerAndCandidateGenerator(Registrable):
              'wiki': ...}
         }
         """
-        offsets_a, grouped_wp_a, tokens_a = self._tokenize_text(text_a)
+        offsets_a, grouped_wp_a, tokens_a = self._tokenize_text(def_pred)
 
         
         offsets_def_gold, grouped_wp_def_gold, tokens_def_gold = self._tokenize_text(def_gold)
 
-        offsets_def_pred, grouped_wp_def_pred, tokens_def_pred = self._tokenize_text(def_pred)
+        # offsets_def_pred, grouped_wp_def_pred, tokens_def_pred = self._tokenize_text(def_pred)
 
         # offsets_b, grouped_wp_b, tokens_b = self._tokenize_text(text_b)
         truncate_sequence_pair(grouped_wp_a, 
                                 grouped_wp_def_gold, 
-                                self.max_word_piece_sequence_length - 4, 
-                                word_piece_tokens_defa=grouped_wp_def_pred, 
+                                self.max_word_piece_sequence_length - 3, 
+                                word_piece_tokens_defa=None, 
                                 word_piece_tokens_defb=None)
             
         offsets_def_gold = offsets_def_gold[:len(grouped_wp_def_gold)]
@@ -126,10 +126,10 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         word_piece_tokens_def_gold = [word_piece for word in grouped_wp_def_gold for word_piece in word]
 
 
-        offsets_def_pred = offsets_def_pred[:len(grouped_wp_def_pred)]
-        tokens_def_pred = tokens_def_pred[:len(grouped_wp_def_pred)]
-        instance_def_pred = self._generate_sentence_entity_candidates(tokens_def_pred, offsets_def_pred)
-        word_piece_tokens_def_pred = [word_piece for word in grouped_wp_def_pred for word_piece in word]
+        # offsets_def_pred = offsets_def_pred[:len(grouped_wp_def_pred)]
+        # tokens_def_pred = tokens_def_pred[:len(grouped_wp_def_pred)]
+        # instance_def_pred = self._generate_sentence_entity_candidates(tokens_def_pred, offsets_def_pred)
+        # word_piece_tokens_def_pred = [word_piece for word in grouped_wp_def_pred for word_piece in word]
 
         # offsets_defb = offsets_defb[:len(grouped_wp_defb)]
         # tokens_defb = tokens_defb[:len(grouped_wp_defb)]
@@ -158,13 +158,15 @@ class BertTokenizerAndCandidateGenerator(Registrable):
         #if we got 4 sentences
         if def_pred is not None and def_gold is not None:
             tokens = [start_token] + word_piece_tokens_a + [sep_token] + word_piece_tokens_def_gold + \
-                [sep_token] + word_piece_tokens_def_pred + [sep_token]
+                [sep_token] 
+            # + word_piece_tokens_def_pred + [sep_token]
             segment_ids = (len(word_piece_tokens_a) + 2) * [0] + \
-                    (len(word_piece_tokens_def_gold) + 1) * [1] + (len(word_piece_tokens_def_pred) + 1) * [1]
+                    (len(word_piece_tokens_def_gold) + 1) * [1] 
+            # + (len(word_piece_tokens_def_pred) + 1) * [1]
             
             offsets_a = [x + 1 for x in offsets_a]
             offsets_def_gold = [x + 2 + len(word_piece_tokens_a) for x in offsets_def_gold]
-            offsets_def_pred = [x + 3 + len(word_piece_tokens_a) + len(word_piece_tokens_def_gold) for x in offsets_def_pred]
+            # offsets_def_pred = [x + 3 + len(word_piece_tokens_a) + len(word_piece_tokens_def_gold) for x in offsets_def_pred]
 
             # offsets_defb = [x + 4 + len(word_piece_tokens_a) + len(word_piece_tokens_defa) + len(word_piece_tokens_b) for x in offsets_defb]
         
@@ -202,7 +204,7 @@ class BertTokenizerAndCandidateGenerator(Registrable):
                 candidate_instance_a = instance_a[entity_type]
                 candidate_instance_def_gold = instance_def_gold[entity_type]
                 
-                candidate_instance_def_pred = instance_def_pred[entity_type]
+                # candidate_instance_def_pred = instance_def_pred[entity_type]
                 
                 # candidate_instance_defb = instance_defb[entity_type]
 
@@ -212,9 +214,9 @@ class BertTokenizerAndCandidateGenerator(Registrable):
                     span[0] += 2 + len(word_piece_tokens_a)
                     span[1] += 2 + len(word_piece_tokens_a)
                 
-                for span in candidate_instance_def_pred['candidate_spans']:
-                    span[0] += 3 + len(word_piece_tokens_a) + len(word_piece_tokens_def_gold)
-                    span[1] += 3 + len(word_piece_tokens_a) + len(word_piece_tokens_def_gold)
+                # for span in candidate_instance_def_pred['candidate_spans']:
+                #     span[0] += 3 + len(word_piece_tokens_a) + len(word_piece_tokens_def_gold)
+                #     span[1] += 3 + len(word_piece_tokens_a) + len(word_piece_tokens_def_gold)
                 
                 
                 # for span in candidate_instance_defb['candidate_spans']:

@@ -56,7 +56,7 @@ class WicDatasetReader(DatasetReader):
                 # print(text_a, def_a, text_b, def_b)
                 token_candidates = self.tokenizer.tokenize_and_generate_candidates(context, def_gold, def_pred)
                 fields = self.tokenizer.convert_tokens_candidates_to_fields(token_candidates)
-                fields['label_ids'] = LabelField(self.label_to_index[label], skip_indexing=True)
+                fields['label_ids'] = LabelField(label, skip_indexing=True)
 
                 # get the indices of the marked words
                 # index in the original tokens

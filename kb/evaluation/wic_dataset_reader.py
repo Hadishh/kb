@@ -61,8 +61,8 @@ class WicDatasetReader(DatasetReader):
                 # get the indices of the marked words
                 # index in the original tokens
                 # idx1, idx2 = [int(ind) for ind in tokens[2].split('-')]
-                offsets_c = [1] + token_candidates['offsets_a'][:-1]
-                idx_offset = offsets_c[idx]
+                # offsets_c = [1] + token_candidates['offsets_a'][:-1]
+                # idx_offset = offsets_c[idx]
                 # offsets_b = [token_candidates['offsets_defa'][-1] + 1] + token_candidates['offsets_b'][:-1]
                 # idx2_offset = offsets_b[idx2]
 
